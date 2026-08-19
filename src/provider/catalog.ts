@@ -1,10 +1,12 @@
 import type { CancellationToken, Memento } from 'vscode';
 import { AuthManager } from '../auth';
 import { CommandCodeClient, ZDR_HEADER } from '../client';
-import { getBaseUrl, getZdrEnabled } from '../config';
+import { getZdrEnabled } from '../config';
 import { FAMILY, TOOLS_LIMIT } from '../consts';
 import { logger } from '../logger';
 import type { ModelDefinition, ThinkingCapability } from '../types';
+
+const CATALOG_BASE_URL = 'https://api.commandcode.ai/provider/v1';
 
 /**
  * Live model-catalog sync (fetch-once, refresh-on-demand).
@@ -56,7 +58,7 @@ let sessionCache:
 	| undefined;
 
 function stateKey(): string {
-	return `${CATALOG_STATE_KEY_PREFIX}:${CATALOG_STATE_VERSION}:${getBaseUrl()}`;
+	return `${CATALOG_STATE_KEY_PREFIX}:${CATALOG_STATE_VERSION}:${CATALOG_BASE_URL}`;
 }
 
 function readPersisted(globalState: Memento): ReadonlyMap<string, LiveModelInfo> | undefined {
@@ -156,9 +158,8 @@ async function fetchLiveCatalog(
 	}
 
 	try {
-		const baseUrl = getBaseUrl();
 		const extraHeaders = getZdrEnabled() ? ZDR_HEADER : undefined;
-		const client = new CommandCodeClient(baseUrl, apiKey, { extraHeaders });
+		const client = new CommandCodeClient(apiKey, { extraHeaders });
 		const response = await client.listModels(token);
 
 		const models = new Map<string, LiveModelInfo>();

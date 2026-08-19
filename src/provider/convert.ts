@@ -1,7 +1,17 @@
 import vscode from 'vscode';
-import { logger } from '../logger';
+import { LANGUAGE_MODEL_CHAT_SYSTEM_ROLE } from '../consts';
 import { safeStringify } from '../json';
-import type { ChatMessage, ChatMessagePart, ChatTool, ChatToolCall } from '../types';
+import type {
+	ChatMessage,
+	ChatMessagePart,
+	ChatTool,
+	ChatToolCall,
+	CommandCodeMessagePart,
+	CommandCodeTool,
+	CommandCodeGenerateMessage,
+} from '../types';
+
+const EMPTY_TOOL_SCHEMA = { type: 'object', properties: {} } as const;
 
 /**
  * Convert VS Code chat messages to OpenAI-compatible format. Images are
@@ -10,7 +20,7 @@ import type { ChatMessage, ChatMessagePart, ChatTool, ChatToolCall } from '../ty
  */
 export function convertMessages(
 	messages: readonly vscode.LanguageModelChatRequestMessage[],
-	options: { imageInput: boolean },
+	options: Readonly<{ imageInput: boolean }>,
 ): ChatMessage[] {
 	const result: ChatMessage[] = [];
 
@@ -55,13 +65,6 @@ export function convertMessages(
 						type: 'image_url',
 						image_url: { url, detail: 'auto' },
 					});
-				} else if (part.mimeType.startsWith('image/')) {
-					// Diagnostic: an image arrived but the model is flagged as
-					// non-vision, so it would be silently dropped. Surface this
-					// so "the model can't see my image" is explainable.
-					logger.warn(
-						`Dropping image part (${part.mimeType}, ${part.data?.byteLength ?? 0} bytes): model does not advertise image input`,
-					);
 				}
 				// Non-image data parts are intentionally ignored — the upstream
 				// API only accepts text + image_url parts.
@@ -71,7 +74,7 @@ export function convertMessages(
 		const text = textSegments.join('');
 
 		if (role === 'assistant') {
-			if (text || toolCalls.length > 0) {
+			if (text || thinkingContent || toolCalls.length > 0) {
 				const msg: ChatMessage = {
 					role: 'assistant',
 					content: text,
@@ -86,10 +89,7 @@ export function convertMessages(
 			}
 		} else if (role === 'user') {
 			if (text || imageSegments.length > 0) {
-				if (imageSegments.length > 0 && options.imageInput) {
-					logger.debug(`Attaching ${imageSegments.length} image part(s) as multimodal content`);
-					// OpenAI-compatible multimodal content: the parts array lives
-					// inside `content`, not in a separate field.
+				if (imageSegments.length > 0) {
 					const parts: ChatMessagePart[] = [];
 					if (text) {
 						parts.push({ type: 'text', text });
@@ -97,16 +97,16 @@ export function convertMessages(
 					parts.push(...imageSegments);
 					result.push({
 						role: 'user',
-						content: parts,
+						content: text,
+						parts,
 					});
 				} else {
 					result.push({ role: 'user', content: text });
 				}
 			}
-		} else {
-			// system / unknown roles — pass through as text
+		} else if (role === 'system') {
 			if (text) {
-				result.push({ role: 'user', content: text });
+				result.push({ role: 'system', content: text });
 			}
 		}
 
@@ -145,15 +145,39 @@ function normalizeThinkingPartText(value: string | string[]): string {
 	return Array.isArray(value) ? value.join('') : value;
 }
 
-function mapRole(role: vscode.LanguageModelChatMessageRole): 'user' | 'assistant' {
+function mapRole(role: vscode.LanguageModelChatMessageRole): ChatMessage['role'] {
 	switch (role) {
 		case vscode.LanguageModelChatMessageRole.User:
 			return 'user';
 		case vscode.LanguageModelChatMessageRole.Assistant:
 			return 'assistant';
 		default:
-			return 'user';
+			return role === LANGUAGE_MODEL_CHAT_SYSTEM_ROLE ? 'system' : 'user';
 	}
+}
+
+/**
+ * `/alpha/generate` accepts system instructions separately from its Vercel AI
+ * SDK message array. Keep the remaining conversation in its original order.
+ */
+export function extractSystemMessages(messages: readonly ChatMessage[]): {
+	system: string;
+	messages: ChatMessage[];
+} {
+	const system: string[] = [];
+	const conversation: ChatMessage[] = [];
+
+	for (const message of messages) {
+		if (message.role === 'system') {
+			if (message.content) {
+				system.push(message.content);
+			}
+		} else {
+			conversation.push(message);
+		}
+	}
+
+	return { system: system.join('\n'), messages: conversation };
 }
 
 /**
@@ -162,7 +186,7 @@ function mapRole(role: vscode.LanguageModelChatMessageRole): 'user' | 'assistant
 export function convertTools(
 	tools: readonly vscode.LanguageModelChatTool[] | undefined,
 ): ChatTool[] | undefined {
-	if (!tools || tools.length === 0) {
+	if (!tools?.length) {
 		return undefined;
 	}
 
@@ -177,31 +201,124 @@ export function convertTools(
 }
 
 /**
+ * Convert the OpenAI-shaped intermediate tools to Command Code's wire shape.
+ * `/alpha/generate` expects `name`, `description`, and `input_schema` at the
+ * top level of each definition.
+ */
+export function toGenerateTools(
+	tools: readonly ChatTool[] | undefined,
+): CommandCodeTool[] | undefined {
+	if (!tools?.length) {
+		return undefined;
+	}
+
+	return tools.map((tool) => ({
+		name: tool.function.name,
+		description: tool.function.description ?? '',
+		input_schema: tool.function.parameters ?? EMPTY_TOOL_SCHEMA,
+	}));
+}
+
+/**
+ * Turn the OpenAI-shaped intermediate messages into the content-part format
+ * required by Command Code's `/alpha/generate` endpoint.
+ */
+export function toGenerateMessages(messages: readonly ChatMessage[]): CommandCodeGenerateMessage[] {
+	const toolNames = new Map<string, string>();
+
+	return messages.map((message) => {
+		if (message.role === 'tool') {
+			const toolCallId = message.tool_call_id ?? '';
+			const toolName = toolNames.get(toolCallId) ?? 'unknown';
+			return {
+				role: 'tool' as const,
+				content: [
+					{
+						type: 'tool-result' as const,
+						toolCallId,
+						toolName,
+						output: { type: 'text' as const, value: message.content },
+					},
+				],
+			};
+		}
+
+		const content: CommandCodeMessagePart[] = [];
+		if (message.role === 'assistant' && message.reasoning_content) {
+			content.push({ type: 'reasoning', text: message.reasoning_content });
+		}
+		if (message.parts && message.parts.length > 0) {
+			for (const part of message.parts) {
+				if (part.type === 'image_url') {
+					const imageUrl = part.image_url.url;
+					const mimeType = getMediaType(imageUrl);
+					content.push({
+						type: 'image',
+						image: imageUrl,
+						...(mimeType ? { mimeType } : {}),
+					});
+				} else {
+					content.push({ type: 'text', text: part.text });
+				}
+			}
+		} else if (message.content || message.role !== 'assistant') {
+			content.push({ type: 'text', text: message.content });
+		}
+
+		if (message.role === 'assistant' && message.tool_calls) {
+			for (const toolCall of message.tool_calls) {
+				const toolName = toolCall.function.name;
+				toolNames.set(toolCall.id, toolName);
+				content.push({
+					type: 'tool-call',
+					toolCallId: toolCall.id,
+					toolName,
+					input: parseToolArguments(toolCall.function.arguments),
+				});
+			}
+		}
+
+		return { role: message.role, content };
+	});
+}
+
+function parseToolArguments(value: string): Record<string, unknown> {
+	try {
+		const parsed: unknown = JSON.parse(value);
+		return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+			? (parsed as Record<string, unknown>)
+			: {};
+	} catch {
+		return {};
+	}
+}
+
+function getMediaType(url: string): string | undefined {
+	const match = /^data:([^;,]+)[;,]/u.exec(url);
+	return match?.[1];
+}
+
+/**
  * Sum character counts across all messages so we can calibrate the
  * chars-per-token ratio when usage stats are reported back from the API.
  */
-export function countMessageChars(messages: ChatMessage[]): number {
+export function countMessageChars(messages: readonly ChatMessage[]): number {
 	let total = 0;
 	for (const msg of messages) {
-		if (typeof msg.content === 'string') {
-			total += msg.content.length;
-		} else {
-			for (const part of msg.content) {
-				if (part.text) {
+		total += msg.reasoning_content?.length ?? 0;
+		if (msg.parts) {
+			for (const part of msg.parts) {
+				if (part.type === 'text') {
 					total += part.text.length;
 				}
-				// Images count as a fixed overhead; their base64 payload is not
-				// representative of token cost.
-				if (part.image_url) {
-					total += 1024;
-				}
 			}
+		} else {
+			total += msg.content.length;
 		}
-		total += msg.reasoning_content?.length ?? 0;
 		if (msg.tool_calls) {
 			for (const tc of msg.tool_calls) {
-				total += tc.function?.name?.length ?? 0;
-				total += tc.function?.arguments?.length ?? 0;
+				total += tc.function.name.length;
+				total += tc.function.arguments.length;
 			}
 		}
 	}

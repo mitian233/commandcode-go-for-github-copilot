@@ -1,5 +1,5 @@
 /**
- * Shared types for the Command Code Copilot extension.
+ * Shared types for the Command Code Go for vscode extension.
  */
 
 // ---- API request/response types ----
@@ -20,22 +20,21 @@ export type ChatRole = 'system' | 'user' | 'assistant' | 'tool';
 
 export interface ChatMessage {
 	role: ChatRole;
-	/**
-	 * Text content of the message. For user messages with image input this is
-	 * a multimodal content array per the OpenAI chat-completions spec
-	 * (`[{ type: 'text' }, { type: 'image_url' }, ...]`).
-	 */
-	content: string | ChatMessagePart[];
+	/** Text content of the message. May be empty for tool/assistant turns. */
+	content: string;
 	tool_call_id?: string;
 	tool_calls?: ChatToolCall[];
 	reasoning_content?: string;
+	/** Optional multimodal content for user messages (vision input). */
+	parts?: ChatMessagePart[];
 }
 
-export interface ChatMessagePart {
-	type: 'text' | 'image_url';
-	text?: string;
-	image_url?: { url: string; detail?: 'auto' | 'low' | 'high' };
-}
+export type ChatMessagePart =
+	| { type: 'text'; text: string }
+	| {
+			type: 'image_url';
+			image_url: { url: string; detail?: 'auto' | 'low' | 'high' };
+	  };
 
 export interface ChatToolCall {
 	id: string;
@@ -55,6 +54,19 @@ export interface ChatTool {
 	};
 }
 
+/**
+ * Tool definition used by Command Code's `/alpha/generate` envelope.
+ *
+ * This endpoint does not accept the OpenAI `{ type, function: {...} }` shape;
+ * it expects the Vercel/CLI shape with the name and JSON schema at the top
+ * level.
+ */
+export interface CommandCodeTool {
+	name: string;
+	description: string;
+	input_schema: Record<string, unknown>;
+}
+
 export interface ChatUsage {
 	prompt_tokens: number;
 	completion_tokens: number;
@@ -63,46 +75,64 @@ export interface ChatUsage {
 	prompt_cache_miss_tokens?: number;
 }
 
-export interface ChatRequest {
-	model: string;
-	messages: ChatMessage[];
-	stream: boolean;
-	temperature?: number;
-	top_p?: number;
-	max_tokens?: number;
-	tools?: ChatTool[];
-	tool_choice?: 'none' | 'auto' | 'required';
-	/** Provider-specific reasoning knobs (only attached when thinking is enabled). */
-	reasoning_effort?: ReasoningEffort;
-	stream_options?: {
-		include_usage: boolean;
-	};
+/** Workspace and Git metadata required by the Command Code generate endpoint. */
+export interface CommandCodeRequestConfig {
+	workingDir: string;
+	date: string;
+	environment: 'cli';
+	structure: unknown[];
+	isGitRepo: boolean;
+	currentBranch: string;
+	mainBranch: string;
+	gitStatus: string;
+	recentCommits: string[];
 }
 
-export interface ChatStreamChunk {
-	id: string;
-	object: string;
-	created: number;
+/** A message encoded in the `params.messages` format used by `/alpha/generate`. */
+export interface CommandCodeGenerateMessage {
+	role: ChatRole;
+	content: CommandCodeMessagePart[];
+}
+
+/** Content parts accepted by the Vercel AI SDK message schema. */
+export type CommandCodeMessagePart =
+	| { type: 'text'; text: string }
+	| { type: 'image'; image: string; mimeType?: string }
+	| { type: 'reasoning'; text: string }
+	| { type: 'tool-call'; toolCallId: string; toolName: string; input: Record<string, unknown> }
+	| {
+			type: 'tool-result';
+			toolCallId: string;
+			toolName: string;
+			output: { type: 'text' | 'error-text'; value: string };
+	  };
+
+/** Parameters accepted by the Command Code generate endpoint. */
+export interface CommandCodeGenerateParams {
 	model: string;
-	choices: Array<{
-		index: number;
-		delta: {
-			role?: string;
-			content?: string;
-			reasoning_content?: string;
-			tool_calls?: Array<{
-				index: number;
-				id?: string;
-				type?: string;
-				function?: {
-					name?: string;
-					arguments?: string;
-				};
-			}>;
-		};
-		finish_reason: string | null;
-	}>;
-	usage?: ChatUsage;
+	messages: CommandCodeGenerateMessage[];
+	tools: CommandCodeTool[];
+	system: string;
+	max_tokens: number;
+	temperature: number;
+	stream: true;
+	reasoning_effort?: ReasoningEffort;
+}
+
+/**
+ * Request envelope used by `POST /alpha/generate`.
+ *
+ * `memory`, `taste`, and `skills` are deliberately empty for the VS Code
+ * integration. Command Code's CLI owns those values; VS Code already sends
+ * its chat context as `params.messages`.
+ */
+export interface ChatRequest {
+	config: CommandCodeRequestConfig;
+	memory: '';
+	taste: '';
+	skills: '';
+	params: CommandCodeGenerateParams;
+	threadId: string;
 }
 
 // ---- Stream callbacks ----
@@ -112,7 +142,7 @@ export interface StreamCallbacks {
 	onThinking: (text: string) => void;
 	onToolCall: (toolCall: ChatToolCall) => void;
 	onError: (error: Error) => void;
-	onDone: () => void;
+	onDone?: () => void;
 	onUsage?: (usage: ChatUsage) => void;
 }
 
@@ -135,7 +165,8 @@ export interface ModelDefinition {
 	maxInputTokens: number;
 	maxOutputTokens: number;
 	capabilities: {
-		toolCalling: boolean | number;
+		/** `false` disables tools; a number limits tools per request. */
+		toolCalling: false | number;
 		imageInput: boolean;
 		thinking: ThinkingCapability | false;
 	};

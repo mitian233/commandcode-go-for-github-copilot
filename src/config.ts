@@ -1,38 +1,8 @@
 import vscode from 'vscode';
-import { CONFIG_SECTION, DEFAULT_BASE_URL } from './consts';
+import { CONFIG_SECTION } from './consts';
 
 export type DebugMode = 'minimal' | 'metadata' | 'verbose';
-
-/**
- * Get Command Code API base URL from settings.
- * Falls back to the official endpoint when not configured.
- */
-export function getBaseUrl(): string {
-	const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
-	return config.get<string>('baseUrl') || DEFAULT_BASE_URL;
-}
-
-/**
- * Resolve the API model ID to send to the endpoint.
- *
- * Users can override model IDs via the `modelIdOverrides` setting object
- * (e.g. for self-hosted mirrors that rename the model). Falls back to the
- * VS Code model ID when no override is configured.
- */
-export function getApiModelId(vscodeModelId: string): string {
-	const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
-	const overrides = config.get<Record<string, string>>('modelIdOverrides');
-	const override = overrides?.[vscodeModelId]?.trim();
-	return override || vscodeModelId;
-}
-
-/**
- * Models the user wants hidden from the picker (matched on VS Code model id).
- */
-export function getModelBlacklist(): string[] {
-	const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
-	return config.get<string[]>('modelBlacklist') ?? [];
-}
+const DEBUG_MODES = ['minimal', 'metadata', 'verbose'] as const satisfies readonly DebugMode[];
 
 /**
  * Get the configured max output tokens limit.
@@ -45,17 +15,7 @@ export function getMaxTokens(): number | undefined {
 }
 
 /**
- * Override the context window reported to Copilot. 0 means "use the model's
- * default". Useful when self-hosted mirrors serve a model with a smaller
- * context than the upstream registry claims.
- */
-export function getMaxContextTokensOverride(): number {
-	const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
-	return config.get<number>('maxContextTokens', 0);
-}
-
-/**
- * Whether to attach the `x-cmd-zdr: 1` header on every request.
+ * Whether to attach the `x-cmdc-zdr: 1` header on every request.
  */
 export function getZdrEnabled(): boolean {
 	const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
@@ -65,38 +25,12 @@ export function getZdrEnabled(): boolean {
 export function getDebugMode(): DebugMode {
 	const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
 	const mode = config.get<string>('debugMode');
-	if (mode === 'minimal' || mode === 'metadata' || mode === 'verbose') {
-		return mode;
+	if (DEBUG_MODES.includes(mode as DebugMode)) {
+		return mode as DebugMode;
 	}
 	return 'minimal';
 }
 
 export function getDebugLoggingEnabled(): boolean {
 	return getDebugMode() !== 'minimal';
-}
-
-/**
- * How the picker renders the text alongside each model name.
- *
- * `auto` resolves to `compact` on Linux, where the picker lays `name` and
- * `detail` out on a single line and gives the detail most of the width, and
- * to `full` everywhere else.
- */
-export type ModelDetailStyle = 'auto' | 'full' | 'compact' | 'hidden';
-
-export function getModelDetailStyle(): ModelDetailStyle {
-	const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
-	const style = config.get<string>('modelDetailStyle');
-	if (style === 'full' || style === 'compact' || style === 'hidden') {
-		return style;
-	}
-	return 'auto';
-}
-
-export function resolveModelDetailStyle(): Exclude<ModelDetailStyle, 'auto'> {
-	const style = getModelDetailStyle();
-	if (style === 'auto') {
-		return process.platform === 'linux' ? 'compact' : 'full';
-	}
-	return style;
 }

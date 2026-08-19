@@ -6,7 +6,7 @@ import type {
 	ThinkingCapability,
 	ThinkingEffort,
 } from '../types';
-import { getMaxContextTokensOverride, resolveModelDetailStyle } from '../config';
+
 
 /**
  * Non-public Copilot Chat API surface.
@@ -37,17 +37,8 @@ export function toChatInfo(
 	liveContextLength?: number,
 ): ModelPickerChatInformation {
 	const thinkingCapability = m.capabilities.thinking;
-	const contextOverride = getMaxContextTokensOverride();
-
-	// Precedence for the input window reported to Copilot:
-	//   1. explicit `maxContextTokens` setting,
-	//   2. live `context_length` from the provider API (total window minus
-	//      the output reserved for generation),
-	//   3. the static registry value as a fallback.
 	let maxInputTokens = m.maxInputTokens;
-	if (contextOverride > 0) {
-		maxInputTokens = contextOverride;
-	} else if (typeof liveContextLength === 'number' && liveContextLength > m.maxOutputTokens) {
+	if (typeof liveContextLength === 'number' && liveContextLength > m.maxOutputTokens) {
 		maxInputTokens = liveContextLength - m.maxOutputTokens;
 	}
 
@@ -86,22 +77,7 @@ export function toChatInfo(
  *   - `auto`    → `compact` on Linux, `full` elsewhere
  */
 function formatModelDetail(m: ModelDefinition): string {
-	const style = resolveModelDetailStyle();
-	if (style === 'hidden') {
-		return '';
-	}
-	if (style === 'full') {
-		return m.detail;
-	}
-
-	const parts: string[] = [];
-	if (m.capabilities.imageInput) {
-		parts.push(t('capability.vision'));
-	}
-	if (m.capabilities.thinking) {
-		parts.push(t('capability.thinking'));
-	}
-	return parts.join(' · ');
+	return m.detail;
 }
 
 /**
