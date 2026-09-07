@@ -15,7 +15,7 @@ Access Command Code models directly inside Copilot Chat — no new UI, no workfl
 
 ### Complete model catalog in the picker
 
-Every model available through Command Code's provider API appears right next to built-in options in the Copilot Chat selector — including Claude Opus 5, Claude Sonnet 5, GPT-5.5/5.6, Gemini 3.7 Flash, DeepSeek V4 Pro/Flash (incl. Flash Vision exp), Kimi K3, Qwen 3.8 Max/Flash, GLM-5.3 & GLM-5.3 Flash, Grok 4.6, and many others. You can swap models in the middle of a conversation without resetting context.
+Every model available through Command Code's provider API appears right next to built-in options in the Copilot Chat selector — including Claude Opus 5, Claude Sonnet 5, GPT-5.5/5.6/6, Gemini 3.7 Flash, DeepSeek V4 Pro/Flash (incl. Flash Vision exp), Kimi K3, Qwen 3.8 Max/Flash, GLM-5.3 & GLM-5.3 Flash, Grok 4.6, and many others. You can swap models in the middle of a conversation without resetting context.
 
 ### Live model discovery
 
@@ -86,22 +86,23 @@ Built entirely on VS Code's extension API and Node.js standard library. There's 
 
 The extension surfaces the full Command Code provider lineup, organized by vendor. Here are some highlights:
 
-| Model                              | Reasoning levels              | Vision | Ideal use case                              |
-| ---------------------------------- | ----------------------------- | ------ | ------------------------------------------- |
-| **Claude Sonnet 5**                | Off / Light / Standard / Deep | ✅     | Strong balance of speed and capability      |
-| **Claude Opus 5**                  | Off / Light / Standard / Deep | ✅     | Highest-capability Anthropic model          |
-| **GPT-5.6-Luna**                   | Off / Light / Standard / Deep | ✅     | Optimized for cost-sensitive workloads      |
-| **Gemini 3.7 Flash**               | Off / Light / Standard / Deep | ✅     | Fast coding and agent-oriented tasks        |
-| **DeepSeek V4 Pro**                | Off / Light / Standard / Deep | —      | Long-context reasoning via hybrid attention |
-| **DeepSeek V4 Flash Vision (exp)** | Off / Light / Standard / Deep | ✅     | Fast reasoning with vision input            |
-| **Qwen 3.7 Plus**                  | Off / Light / Standard / Deep | ✅     | Cost-effective agentic development          |
-| **Qwen 3.8 Flash**                 | Off / Light / Standard / Deep | ✅     | Fast low-cost agentic coding & reasoning    |
-| **Kimi K3**                        | Off / Light / Standard / Deep | ✅     | 1M-token context for knowledge-heavy work   |
-| **Grok 4.5**                       | Off / Light / Standard / Deep | ✅     | xAI's top model for development tasks       |
-| **GLM-5.3**                        | Off / Light / Standard / Deep | —      | Frontier reasoning with 1M context          |
-| **GLM-5.3 Flash**                  | Off / Light / Standard / Deep | —      | Fast, affordable GLM coding with 1M context |
+| Model                              | Reasoning levels              | Vision | Ideal use case                                             |
+| ---------------------------------- | ----------------------------- | ------ | ---------------------------------------------------------- |
+| **Claude Sonnet 5**                | Off / Light / Standard / Deep | ✅     | Strong balance of speed and capability                     |
+| **Claude Opus 5**                  | Off / Light / Standard / Deep | ✅     | Highest-capability Anthropic model                         |
+| **GPT-5.6-Luna**                   | Off / Light / Standard / Deep | ✅     | Optimized for cost-sensitive workloads                     |
+| **GPT-6 Astra**                    | Off / Light / Standard / Deep | ✅     | Most capable OpenAI model for demanding reasoning & agents |
+| **Gemini 3.7 Flash**               | Off / Light / Standard / Deep | ✅     | Fast coding and agent-oriented tasks                       |
+| **DeepSeek V4 Pro**                | Off / Light / Standard / Deep | —      | Long-context reasoning via hybrid attention                |
+| **DeepSeek V4 Flash Vision (exp)** | Off / Light / Standard / Deep | ✅     | Fast reasoning with vision input                           |
+| **Qwen 3.7 Plus**                  | Off / Light / Standard / Deep | ✅     | Cost-effective agentic development                         |
+| **Qwen 3.8 Flash**                 | Off / Light / Standard / Deep | ✅     | Fast low-cost agentic coding & reasoning                   |
+| **Kimi K3**                        | Off / Light / Standard / Deep | ✅     | 1M-token context for knowledge-heavy work                  |
+| **Grok 4.5**                       | Off / Light / Standard / Deep | ✅     | xAI's top model for development tasks                      |
+| **GLM-5.3**                        | Off / Light / Standard / Deep | —      | Frontier reasoning with 1M context                         |
+| **GLM-5.3 Flash**                  | Off / Light / Standard / Deep | —      | Fast, affordable GLM coding with 1M context                |
 
-66 models from 18 different providers are included — see the complete catalog in [`src/models.ts`](src/models.ts). Models Command Code adds after a release appear automatically in the picker, marked **(fetched)**.
+67 models from 18 different providers are included — see the complete catalog in [`src/models.ts`](src/models.ts). Models Command Code adds after a release appear automatically in the picker, marked **(fetched)**.
 
 ## Extension settings
 

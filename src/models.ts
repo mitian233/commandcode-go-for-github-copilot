@@ -599,6 +599,18 @@ export const MODELS: ModelDefinition[] = [
 		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
 		category: 'OpenAI',
 	},
+	{
+		id: 'gpt-6-astra',
+		name: 'GPT-6 Astra',
+		family: FAMILY,
+		version: '6',
+		detail: 'most capable OpenAI model for demanding reasoning & agents',
+		// 1.05M total context window (1050000) minus 32K reserved for output.
+		maxInputTokens: 1018000,
+		maxOutputTokens: 32000,
+		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
+		category: 'OpenAI',
+	},
 
 	// ---- Poolside ----
 	{

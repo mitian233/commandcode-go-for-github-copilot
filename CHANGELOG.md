@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8 (2026-09-07)
+
+### Features
+
+- **GPT-6 Astra** added to the maintained model registry — the most capable OpenAI model for demanding reasoning and agents, with a 1.05M context window, surfaced with verified tool-calling, native vision and thinking-effort capabilities in the picker.
+
 ## 0.2.7 (2026-09-03)
 
 ### Features
