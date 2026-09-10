@@ -271,6 +271,18 @@ export const MODELS: ModelDefinition[] = [
 		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: false, thinking: THINKING },
 		category: 'DeepSeek',
 	},
+	{
+		id: 'deepseek/deepseek-v4.1-flash',
+		name: 'DeepSeek V4.1 Flash',
+		family: FAMILY,
+		version: 'v4.1',
+		detail: 'hybrid-attention reasoning with vision',
+		// 1M total context window (1000000) minus 32K reserved for output.
+		maxInputTokens: 968000,
+		maxOutputTokens: 32000,
+		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
+		category: 'DeepSeek',
+	},
 
 	// ---- Google ----
 	{

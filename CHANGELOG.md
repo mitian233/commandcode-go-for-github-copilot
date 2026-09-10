@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.9 (2026-09-10)
+
+### Features
+
+- **DeepSeek V4.1 Flash** added to the maintained model registry — V4.1 hybrid-attention reasoning with native vision and a 1M context window, surfaced with verified tool-calling, native vision and thinking-effort capabilities in the picker.
+
 ## 0.2.8 (2026-09-07)
 
 ### Features

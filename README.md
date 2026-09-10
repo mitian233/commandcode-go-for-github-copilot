@@ -15,7 +15,7 @@ Access Command Code models directly inside Copilot Chat — no new UI, no workfl
 
 ### Complete model catalog in the picker
 
-Every model available through Command Code's provider API appears right next to built-in options in the Copilot Chat selector — including Claude Opus 5, Claude Sonnet 5, GPT-5.5/5.6/6, Gemini 3.7 Flash, DeepSeek V4 Pro/Flash (incl. Flash Vision exp), Kimi K3, Qwen 3.8 Max/Flash, GLM-5.3 & GLM-5.3 Flash, Grok 4.6, and many others. You can swap models in the middle of a conversation without resetting context.
+Every model available through Command Code's provider API appears right next to built-in options in the Copilot Chat selector — including Claude Opus 5, Claude Sonnet 5, GPT-5.5/5.6/6, Gemini 3.7 Flash, DeepSeek V4 Pro/Flash (incl. V4.1 Flash and Flash Vision exp), Kimi K3, Qwen 3.8 Max/Flash, GLM-5.3 & GLM-5.3 Flash, Grok 4.6, and many others. You can swap models in the middle of a conversation without resetting context.
 
 ### Live model discovery
 
@@ -94,6 +94,7 @@ The extension surfaces the full Command Code provider lineup, organized by vendo
 | **GPT-6 Astra**                    | Off / Light / Standard / Deep | ✅     | Most capable OpenAI model for demanding reasoning & agents |
 | **Gemini 3.7 Flash**               | Off / Light / Standard / Deep | ✅     | Fast coding and agent-oriented tasks                       |
 | **DeepSeek V4 Pro**                | Off / Light / Standard / Deep | —      | Long-context reasoning via hybrid attention                |
+| **DeepSeek V4.1 Flash**            | Off / Light / Standard / Deep | ✅     | V4.1 hybrid-attention reasoning with vision                |
 | **DeepSeek V4 Flash Vision (exp)** | Off / Light / Standard / Deep | ✅     | Fast reasoning with vision input                           |
 | **Qwen 3.7 Plus**                  | Off / Light / Standard / Deep | ✅     | Cost-effective agentic development                         |
 | **Qwen 3.8 Flash**                 | Off / Light / Standard / Deep | ✅     | Fast low-cost agentic coding & reasoning                   |
@@ -102,7 +103,7 @@ The extension surfaces the full Command Code provider lineup, organized by vendo
 | **GLM-5.3**                        | Off / Light / Standard / Deep | —      | Frontier reasoning with 1M context                         |
 | **GLM-5.3 Flash**                  | Off / Light / Standard / Deep | —      | Fast, affordable GLM coding with 1M context                |
 
-67 models from 18 different providers are included — see the complete catalog in [`src/models.ts`](src/models.ts). Models Command Code adds after a release appear automatically in the picker, marked **(fetched)**.
+68 models from 18 different providers are included — see the complete catalog in [`src/models.ts`](src/models.ts). Models Command Code adds after a release appear automatically in the picker, marked **(fetched)**.
 
 ## Extension settings
 
