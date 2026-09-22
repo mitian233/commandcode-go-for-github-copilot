@@ -103,11 +103,12 @@ export function defaultOutputTokensForContext(contextLength: number): number {
 }
 
 /**
- * True when the model id carries the `-free` suffix Command Code appends to
- * limited-time free variants of paid models (e.g. `minimax/minimax-m3-free`).
+ * True when the model id ends with one of the free-variant markers Command
+ * Code appends to limited-time free models: `-free` or `:free`
+ * (e.g. `minimax/minimax-m3-free`, `meituan/LongCat-2.0:free`).
  */
 export function isFreeModelId(id: string): boolean {
-	return /-free$/i.test(id);
+	return /[-:]free$/i.test(id);
 }
 
 /**
@@ -115,9 +116,9 @@ export function isFreeModelId(id: string): boolean {
  * live catalog. Capabilities are conservative defaults (vision + reasoning
  * enabled, tool calling on), and the name is marked "(fetched)" so users can
  * tell auto-discovered entries from the verified static registry. Free
- * variants (id ending in `-free`) are marked "(fetched, free)" instead, and
- * the definition is flagged `fetched` so the picker's tooltip card can show
- * the upstream model id.
+ * variants (id ending in `-free` or `:free`) are marked "(fetched, free)"
+ * instead, and the definition is flagged `fetched` so the picker's tooltip
+ * card can show the upstream model id.
  */
 export function liveModelToDefinition(id: string, info: LiveModelInfo): ModelDefinition {
 	const maxOutputTokens = defaultOutputTokensForContext(info.contextLength);

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 (2026-09-22)
+
+### Features
+
+- **Grok 4.7** added to the maintained model registry — coding and knowledge work built for multi-hour tasks with a 500K context window, surfaced with verified tool-calling, native vision and thinking-effort capabilities in the picker.
+- **MiMo V2.6 Flash** added to the maintained model registry — efficient multimodal agentic coding with a 1.05M context window, surfaced with verified tool-calling, native vision and thinking-effort capabilities in the picker.
+- **MiMo V2.6 Pro** added to the maintained model registry — flagship multimodal agentic coding with a 1.05M context window, surfaced with verified tool-calling, native vision and thinking-effort capabilities in the picker.
+- **MiMo V2.6 Pro UltraSpeed** added to the maintained model registry — the low-latency serving tier of MiMo V2.6 Pro with a 1.05M context window, surfaced with verified tool-calling, native vision and thinking-effort capabilities in the picker.
+- **Qwen 3.8 Omni Flash** added to the maintained model registry — omni-modal understanding and multimedia agentic work with a 1M context window, surfaced with verified tool-calling, native vision and thinking-effort capabilities in the picker.
+
+### Fixes
+
+- **`:free` variants are now classified as free.** Command Code marks limited-time free models with either a `-free` or a `:free` id suffix, but only the `-free` form was recognized — auto-discovered models ending in `:free` (e.g. `meituan/LongCat-2.0:free`) were shown as ordinary fetched entries. Both suffixes now yield the **"(fetched, free)"** marker in the picker.
+
 ## 0.2.9 (2026-09-10)
 
 ### Features

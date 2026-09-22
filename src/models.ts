@@ -135,6 +135,17 @@ export const MODELS: ModelDefinition[] = [
 		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
 		category: 'Alibaba',
 	},
+	{
+		id: 'Qwen/Qwen3.8-Omni-Flash',
+		name: 'Qwen 3.8 Omni Flash',
+		family: FAMILY,
+		version: '3.8',
+		detail: 'omni-modal understanding & multimedia agentic work',
+		maxInputTokens: 968000,
+		maxOutputTokens: 32000,
+		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
+		category: 'Alibaba',
+	},
 
 	// ---- Anthropic ----
 	{
@@ -734,6 +745,17 @@ export const MODELS: ModelDefinition[] = [
 		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: false, thinking: THINKING },
 		category: 'xAI',
 	},
+	{
+		id: 'xai/grok-4.7',
+		name: 'Grok 4.7',
+		family: FAMILY,
+		version: '4.7',
+		detail: 'coding and knowledge work, built for multi-hour tasks',
+		maxInputTokens: 468000,
+		maxOutputTokens: 32000,
+		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
+		category: 'xAI',
+	},
 
 	// ---- Xiaomi ----
 	{
@@ -756,6 +778,42 @@ export const MODELS: ModelDefinition[] = [
 		maxInputTokens: 968000,
 		maxOutputTokens: 32000,
 		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: false, thinking: NO_THINKING },
+		category: 'Xiaomi',
+	},
+	{
+		id: 'xiaomi/mimo-v2.6-flash',
+		name: 'MiMo V2.6 Flash',
+		family: FAMILY,
+		version: 'v2.6',
+		detail: 'efficient multimodal agentic coding',
+		// 1.05M total context window (1050000) minus 32K reserved for output.
+		maxInputTokens: 1018000,
+		maxOutputTokens: 32000,
+		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
+		category: 'Xiaomi',
+	},
+	{
+		id: 'xiaomi/mimo-v2.6-pro',
+		name: 'MiMo V2.6 Pro',
+		family: FAMILY,
+		version: 'v2.6',
+		detail: 'flagship multimodal agentic coding',
+		// 1.05M total context window (1050000) minus 32K reserved for output.
+		maxInputTokens: 1018000,
+		maxOutputTokens: 32000,
+		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
+		category: 'Xiaomi',
+	},
+	{
+		id: 'xiaomi/mimo-v2.6-pro-ultraspeed',
+		name: 'MiMo V2.6 Pro UltraSpeed',
+		family: FAMILY,
+		version: 'v2.6',
+		detail: 'low-latency serving tier of MiMo V2.6 Pro',
+		// 1.05M total context window (1050000) minus 32K reserved for output.
+		maxInputTokens: 1018000,
+		maxOutputTokens: 32000,
+		capabilities: { toolCalling: TOOLS_LIMIT, imageInput: true, thinking: THINKING },
 		category: 'Xiaomi',
 	},
 
