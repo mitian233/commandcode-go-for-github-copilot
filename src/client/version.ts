@@ -1,16 +1,26 @@
 import type { Memento } from 'vscode';
 import {
 	CLI_NPM_PACKAGE_URL,
+	CLI_VERSION_DATE_KEY,
 	CLI_VERSION_FETCH_TIMEOUT_MS,
 	CLI_VERSION_KEY,
-	CLI_VERSION_LAST_CHECKED_KEY,
-	CLI_VERSION_UPDATE_INTERVAL_MS,
 	DEFAULT_CLI_VERSION,
 } from '../consts';
 import { logger } from '../logger';
 
 /** In-memory cached CLI spoof version, initialized to the default fixed version. */
 let activeCliVersion: string = DEFAULT_CLI_VERSION;
+
+/**
+ * Get current date string formatted as YYYY-MM-DD.
+ */
+export function getTodayDateString(): string {
+	const now = new Date();
+	const year = now.getFullYear();
+	const month = String(now.getMonth() + 1).padStart(2, '0');
+	const day = String(now.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
 
 /**
  * Initialize the in-memory CLI spoof version from persisted storage (if any).
@@ -35,24 +45,24 @@ export function getCliVersion(): string {
 }
 
 /**
- * Check and update the CLI version from npmjs if more than 24 hours have passed.
- * Times out after 20 seconds. If failed, gracefully abandons and keeps the default/current version.
+ * Check globalState when the extension starts.
+ * If the record does not exist or the stored date does not match today's date,
+ * fetch the latest version from npmjs within 20s and update globalState.
  */
 export async function syncCliVersion(globalState: Memento, force = false): Promise<void> {
-	const now = Date.now();
-	const lastChecked = globalState.get<number>(CLI_VERSION_LAST_CHECKED_KEY, 0);
+	const today = getTodayDateString();
+	const savedDate = globalState.get<string>(CLI_VERSION_DATE_KEY);
+	const savedVersion = globalState.get<string>(CLI_VERSION_KEY);
 
-	// Check if already updated today (unless force is requested)
-	if (!force && now - lastChecked < CLI_VERSION_UPDATE_INTERVAL_MS) {
-		const cached = globalState.get<string>(CLI_VERSION_KEY);
-		if (cached && isValidSemver(cached)) {
-			activeCliVersion = cached;
-			return;
-		}
+	// If already synced for today and valid, reuse it without requesting npmjs
+	if (!force && savedDate === today && savedVersion && isValidSemver(savedVersion)) {
+		activeCliVersion = savedVersion;
+		logger.debug(`Command Code CLI version for today (${today}) is up-to-date: ${savedVersion}`);
+		return;
 	}
 
 	logger.info(
-		`Checking latest Command Code CLI version from npmjs (timeout: ${CLI_VERSION_FETCH_TIMEOUT_MS / 1000}s)...`,
+		`Checking latest Command Code CLI version from npmjs for date ${today} (timeout: ${CLI_VERSION_FETCH_TIMEOUT_MS / 1000}s)...`,
 	);
 
 	const controller = new AbortController();
@@ -80,10 +90,10 @@ export async function syncCliVersion(globalState: Memento, force = false): Promi
 		if (typeof version === 'string' && isValidSemver(version)) {
 			activeCliVersion = version;
 			await globalState.update(CLI_VERSION_KEY, version);
-			await globalState.update(CLI_VERSION_LAST_CHECKED_KEY, now);
-			logger.info(`Command Code CLI spoof version updated to ${version} (persisted)`);
+			await globalState.update(CLI_VERSION_DATE_KEY, today);
+			logger.info(`Command Code CLI spoof version updated to ${version} (date: ${today})`);
 		} else {
-			logger.warn(`Invalid version received from npmjs: ${String(version)}`);
+			logger.warn(`Invalid version format received from npmjs: ${String(version)}`);
 		}
 	} catch (error) {
 		logger.warn(

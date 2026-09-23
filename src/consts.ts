@@ -63,9 +63,8 @@ export const COMMAND_CODE_CLIENT_VERSION = DEFAULT_CLI_VERSION;
 /** Storage key for the dynamically discovered CLI version. */
 export const CLI_VERSION_KEY = 'commandcode-copilot.cliVersion';
 
-/** Storage key for the timestamp when the CLI version was last checked. */
-export const CLI_VERSION_LAST_CHECKED_KEY =
-    'commandcode-copilot.cliVersionLastChecked';
+/** Storage key for the date (YYYY-MM-DD) when the CLI version was last synced. */
+export const CLI_VERSION_DATE_KEY = 'commandcode-copilot.cliVersionDate';
 
 /** NPM package URL used to fetch the latest Command Code CLI version. */
 export const CLI_NPM_PACKAGE_URL =
@@ -73,9 +72,6 @@ export const CLI_NPM_PACKAGE_URL =
 
 /** Request timeout in milliseconds when fetching the CLI version from npmjs (20 seconds). */
 export const CLI_VERSION_FETCH_TIMEOUT_MS = 20_000;
-
-/** Update interval for checking CLI version from npmjs (1 day in milliseconds). */
-export const CLI_VERSION_UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 /** Sentinel thread ID accepted by the Generate API when VS Code provides none. */
 export const DEFAULT_THREAD_ID = '00000000-0000-0000-0000-000000000000';
