@@ -1,4 +1,5 @@
 export { CommandCodeClient, ZDR_HEADER } from './core';
+export { getCliVersion, initCliVersion, syncCliVersion } from './version';
 export {
 	createHttpError,
 	createUserFacingError,

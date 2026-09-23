@@ -1,9 +1,10 @@
 import type { CancellationToken } from 'vscode';
 import { logger } from '../logger';
-import { DEFAULT_BASE_URL, COMMAND_CODE_CLIENT_VERSION } from '../consts';
+import { DEFAULT_BASE_URL } from '../consts';
 import { safeStringify } from '../json';
 import type { ApiModelsResponse, ChatRequest, ChatToolCall, ChatUsage, StreamCallbacks } from '../types';
 import { createHttpError, formatRequestError, normalizeRequestError } from './error';
+import { getCliVersion } from './version';
 
 export interface ClientOptions {
 	/** Optional extra headers attached to every request (e.g. `x-cmdc-zdr: 1`). */
@@ -117,7 +118,7 @@ export class CommandCodeClient {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${this.apiKey}`,
 			Accept: 'text/event-stream',
-			'x-command-code-version': COMMAND_CODE_CLIENT_VERSION,
+			'x-command-code-version': getCliVersion(),
 			'x-cli-environment': 'production',
 			...this.options.extraHeaders,
 		};

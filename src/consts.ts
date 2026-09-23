@@ -9,11 +9,11 @@
 export const CONFIG_SECTION = 'commandcode-copilot';
 
 export const EXTERNAL_URLS = {
-	commandcode: {
-		apiKeys: 'https://commandcode.ai/docs/studio#api-keys',
-		studio: 'https://commandcode.ai/studio/',
-		pricing: 'https://commandcode.ai/docs/resources/pricing-limits',
-	},
+    commandcode: {
+        apiKeys: 'https://commandcode.ai/docs/studio#api-keys',
+        studio: 'https://commandcode.ai/studio/',
+        pricing: 'https://commandcode.ai/docs/resources/pricing-limits',
+    },
 } as const;
 
 /** URI path handled by this extension to reveal the output log. */
@@ -40,7 +40,7 @@ export const WELCOME_SHOWN_KEY = 'commandcode-copilot.welcomeShown';
 
 /** Walkthrough contribution ID. */
 export const WALKTHROUGH_ID =
-	'hotrungnhan.command-code-go-for-github-copilot#commandcodeGettingStarted';
+    'hotrungnhan.command-code-go-for-github-copilot#commandcodeGettingStarted';
 
 // ---- Limits ----
 
@@ -53,10 +53,29 @@ export const TOOLS_LIMIT = 128;
 export const DEFAULT_BASE_URL = 'https://api.commandcode.ai/alpha';
 
 /**
- * Command Code's current CLI protocol version. The API requires a CLI-version
- * header even when the caller is this VS Code extension.
+ * Default fixed Command Code CLI spoof version.
  */
-export const COMMAND_CODE_CLIENT_VERSION = '1.28.1';
+export const DEFAULT_CLI_VERSION = '1.64.0';
+
+/** Backward compatibility alias. */
+export const COMMAND_CODE_CLIENT_VERSION = DEFAULT_CLI_VERSION;
+
+/** Storage key for the dynamically discovered CLI version. */
+export const CLI_VERSION_KEY = 'commandcode-copilot.cliVersion';
+
+/** Storage key for the timestamp when the CLI version was last checked. */
+export const CLI_VERSION_LAST_CHECKED_KEY =
+    'commandcode-copilot.cliVersionLastChecked';
+
+/** NPM package URL used to fetch the latest Command Code CLI version. */
+export const CLI_NPM_PACKAGE_URL =
+    'https://registry.npmjs.org/command-code/latest';
+
+/** Request timeout in milliseconds when fetching the CLI version from npmjs (20 seconds). */
+export const CLI_VERSION_FETCH_TIMEOUT_MS = 20_000;
+
+/** Update interval for checking CLI version from npmjs (1 day in milliseconds). */
+export const CLI_VERSION_UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 /** Sentinel thread ID accepted by the Generate API when VS Code provides none. */
 export const DEFAULT_THREAD_ID = '00000000-0000-0000-0000-000000000000';

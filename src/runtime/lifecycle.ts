@@ -1,6 +1,7 @@
 import vscode from 'vscode';
 import { t } from '../i18n';
 import { logger } from '../logger';
+import { initCliVersion, syncCliVersion } from '../client';
 import { CommandCodeChatProvider } from '../provider';
 import { registerActionUrls } from './actions';
 import { registerCommands } from './commands';
@@ -11,6 +12,11 @@ import { showWelcomeIfNeeded } from './welcome';
 let activeProvider: CommandCodeChatProvider | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+	initCliVersion(context.globalState);
+	void syncCliVersion(context.globalState).catch((error) => {
+		logger.warn('Failed to sync Command Code CLI version from npmjs', error);
+	});
+
 	initializeDiagnostics(context);
 	registerCommands(context);
 	registerActionUrls(context);
